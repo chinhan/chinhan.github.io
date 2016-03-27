@@ -28,7 +28,7 @@
   <p>
   <div class="row">
     <div  id="snet">
-      <div  class="map" style="width: 1024px; height: 640px"></div>
+      <div  class="map" style="width: 960px; height: 640px"></div>
       <!-- <a class="reset" href="javascript:llmap.filterAll();dc.redrawAll();" style="display: none;">reset</a> -->
       <!-- <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span> -->
     </div>
@@ -101,8 +101,8 @@
         var facilitiesGroup = facilities.group().reduceCount();
         marker.dimension(facilities)
               .group(facilitiesGroup)
-              .width(600)
-              .height(400)
+              //.width(600)
+              //.height(400)
               //.center([50.531953318399999, 9.66652502468])
               .fitOnRender(true)
               .fitOnRedraw(true)
@@ -114,8 +114,8 @@
         var bj = cs.dimension(function(d){return d.Baujahr;})
         var bjGroup = bj.group();
         bjChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
-        .width(640)
-        .height(360)
+        .width(520)
+        .height(320)
         .margins({top: 20, right: 80, bottom: 50, left: 80})
         .dimension(bj)
         .group(bjGroup)
@@ -134,8 +134,8 @@
         var renew = cs.dimension(function(d){return Math.round(d.Erneuerung/10000,0)*10;})
         var renewGroup = renew.group();
         renewChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
-        .width(640)
-        .height(360)
+        .width(520)
+        .height(320)
         .margins({top: 20, right: 80, bottom: 50, left: 80})
         .dimension(renew)
         .group(renewGroup)
@@ -153,10 +153,10 @@
         var sk = cs.dimension(function(d){return Math.round(d.SUBS_CLASS,0)/5*5;})
         var skGroup = sk.group();
         skChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
-        .width(640)
-        .height(360)
-        .radius(150)
-        .innerRadius(50) // used to create the donut effect
+        .width(520)
+        .height(320)
+        .radius(100)
+        .innerRadius(30) // used to create the donut effect
         .dimension(sk)
         .group(skGroup)
 
@@ -164,10 +164,10 @@
         var zk = cs.dimension(function(d){return Math.round(d.PRIO_CLASS,0)/5*5;})
         var zkGroup = zk.group();
         zkChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
-        .width(640)
-        .height(360)
-        .radius(150)
-        .innerRadius(50) // used to create the donut effect
+        .width(520)
+        .height(320)
+        .radius(100)
+        .innerRadius(30) // used to create the donut effect
         .dimension(zk)
         .group(zkGroup)
 
