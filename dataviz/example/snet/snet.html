@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SNet</title>
+    <link rel="stylesheet" href="bower_components/dcjs/dc.css">
+    <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="bower_components/leaflet.markercluster/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="bower_components/leaflet.markercluster/dist/MarkerCluster.Default.css">
+    <!-- <link rel="stylesheet" href="../dist/leaflet-map/dc-leaflet-legend.css"> -->
+
+    <script src="bower_components/d3/d3.min.js"></script>
+    <script src="bower_components/crossfilter/crossfilter.min.js"></script>
+    <script src="bower_components/dcjs/dc.js"></script>
+    <script src="bower_components/leaflet/dist/leaflet.js"></script>
+    <script src="bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+    <script src="src/base-map-chart.js"></script>
+    <script src="src/base-leaflet-chart.js"></script>
+    <script src="src/leaflet-marker-chart.js"></script>
+
+    <script src="bower_components/dc-addons/dist/leaflet-map/dc-leaflet.min.js"></script>
+
+
+</head>
+<body>
+
+  <p>
+  <div class="row">
+    <div  id="snet">
+      <div  class="map" style="width: 1200px; height: 800px"></div>
+      <!-- <a class="reset" href="javascript:llmap.filterAll();dc.redrawAll();" style="display: none;">reset</a> -->
+      <!-- <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span> -->
+    </div>
+  </div>
+  </div>
+  </p>
+  <br>   
+  <p>
+    <div class="row">
+      <div id="subsclass-chart">
+        <strong>Substance Class</strong>
+        <span class="reset" style="display: none;">range: <span class="filter"></span></span>
+        <a class="reset" href="javascript:skChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+      <div id="prioclass-chart">
+        <strong>Priority Class</strong>
+        <span class="reset" style="display: none;">range: <span class="filter"></span></span>
+        <a class="reset" href="javascript:zkChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div id="bj-chart">
+        <strong>Construction Years</strong>
+        <span class="reset" style="display: none;">range: <span class="filter"></span></span>
+        <a class="reset" href="javascript:bjChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+      <div id="renew-chart">
+        <strong>Construction cost (1/1000 EURO)</strong>
+        <span class="reset" style="display: none;">range: <span class="filter"></span></span>
+        <a class="reset" href="javascript:renewChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </p>
+
+
+
+<script>
+
+    <!-- var map = L.map('snet').setView([50.531953318399999, 9.66652502468], 12); -->
+    <!-- mapLink = -->
+    <!--   '<a href="http://openstreetmap.org">OpenStreetMap</a>'; -->
+    <!--   L.tileLayer( -->
+    <!--   'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { -->
+    <!--   attribution: '&copy; ' + mapLink + ' Contributors', -->
+    <!--   maxZoom: 18, -->
+    <!-- }).addTo(map); -->
+
+    var groupname = "marker-select";
+    var marker = dc.leafletMarkerChart('#snet',groupname)
+    var bjChart = dc.barChart('#bj-chart',groupname);
+    var renewChart = dc.barChart('#renew-chart',groupname);
+    var skChart = dc.pieChart('#subsclass-chart',groupname);
+    var zkChart = dc.pieChart('#prioclass-chart',groupname);
+
+    d3.csv("kanal2016.csv", function(data) {
+        //make a new crossfilter from the features
+        var cs = crossfilter(data);
+
+        //testing crossfilter by counting all features
+        var nxd = cs.groupAll().reduceCount().value();
+        console.log("There are "+ nxd +" sections within that file!")
+
+
+        var groupname = "marker-select";
+        var facilities = cs.dimension(function(d) { return String(d.Lat1)+","+String(d.Long1); });
+        var facilitiesGroup = facilities.group().reduceCount();
+        marker.dimension(facilities)
+              .group(facilitiesGroup)
+              .width(600)
+              .height(400)
+              //.center([50.531953318399999, 9.66652502468])
+              .fitOnRender(true)
+              .fitOnRedraw(true)
+              //.brushOn(true)
+              .cluster(true);
+
+    
+        //get the 'Baujahr'-dimension
+        var bj = cs.dimension(function(d){return d.Baujahr;})
+        var bjGroup = bj.group();
+        bjChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
+        .width(640)
+        .height(360)
+        .margins({top: 20, right: 80, bottom: 50, left: 80})
+        .dimension(bj)
+        .group(bjGroup)
+        .elasticY(true)
+        .centerBar(true)
+        .gap(1)
+        .round(dc.round.floor)
+        //.alwaysUseRounding(true)
+        .x(d3.scale.linear().domain([1900, 2015]))
+        //.xUnits(d3.time.years)
+        .renderHorizontalGridLines(true)
+        bjChart.xAxis().ticks(10);
+        bjChart.yAxis().ticks(10);
+
+        //get the 'Erneuerung'-dimension
+        var renew = cs.dimension(function(d){return Math.round(d.Erneuerung/10000,0)*10;})
+        var renewGroup = renew.group();
+        renewChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
+        .width(640)
+        .height(360)
+        .margins({top: 20, right: 80, bottom: 50, left: 80})
+        .dimension(renew)
+        .group(renewGroup)
+        .elasticY(true)
+        .centerBar(true)
+        .gap(0.00001)
+        .round(dc.round.floor)
+        //.alwaysUseRounding(true)
+        .x(d3.scale.linear().domain([0, 200]))
+        .renderHorizontalGridLines(true)
+        renewChart.xAxis().ticks(20);
+        renewChart.yAxis().ticks(10);
+
+        //get the 'Subs_Class'-dimension
+        var sk = cs.dimension(function(d){return Math.round(d.SUBS_CLASS,0)/5*5;})
+        var skGroup = sk.group();
+        skChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
+        .width(640)
+        .height(360)
+        .radius(150)
+        .innerRadius(50) // used to create the donut effect
+        .dimension(sk)
+        .group(skGroup)
+
+        //get the 'Prio_Class'-dimension
+        var zk = cs.dimension(function(d){return Math.round(d.PRIO_CLASS,0)/5*5;})
+        var zkGroup = zk.group();
+        zkChart /* dc.barChart('#volume-month-chart', 'chartGroup') */
+        .width(640)
+        .height(360)
+        .radius(150)
+        .innerRadius(50) // used to create the donut effect
+        .dimension(zk)
+        .group(zkGroup)
+
+        //#### Rendering
+        //simply call `.renderAll()` to render all charts on the page
+        //dc.renderAll();
+        dc.renderAll(groupname);
+    }
+    )
+
+</script>
+
+
+</body>
+</html>
